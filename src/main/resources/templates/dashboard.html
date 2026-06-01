@@ -17,6 +17,8 @@
         .status-CANCELLED { color: #94A3B8; }
         .action-btn       { background: #EF4444; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
         .action-btn:hover { background: #DC2626; }
+        .action-btn-success { background: #10B981; color: white; padding: 4px 8px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; margin-right: 4px; }
+        .action-btn-success:hover { background: #059669; }
     </style>
 </head>
 <body>
@@ -57,7 +59,11 @@
                           th:class="${'status-' + appt.status}">BOOKED</span>
                 </td>
                 <td>
-                    <!-- 僅顯示 BOOKED 狀態才有的取消按鈕 -->
+                    <!-- 僅顯示 BOOKED 狀態才有的操作按鈕 -->
+                    <button th:if="${appt.status == 'BOOKED'}"
+                            th:data-id="${appt.apptId}"
+                            class="action-btn-success"
+                            onclick="completeAppointment(this)">看診完成</button>
                     <button th:if="${appt.status == 'BOOKED'}"
                             th:data-id="${appt.apptId}"
                             class="action-btn"
@@ -71,6 +77,24 @@
     </p>
 
     <script>
+        function completeAppointment(btn) {
+            if (!confirm('確定要將這筆掛號標記為看診完成嗎？')) return;
+            const id = btn.getAttribute('data-id');
+            
+            fetch(`/api/appointments/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: 'COMPLETED' })
+            })
+            .then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    alert('操作失敗，請稍後再試。');
+                }
+            }).catch(err => console.error(err));
+        }
+
         function cancelAppointment(btn) {
             if (!confirm('確定要取消這筆掛號嗎？')) return;
             const id = btn.getAttribute('data-id');
